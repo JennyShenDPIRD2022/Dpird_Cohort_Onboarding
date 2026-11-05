@@ -82,3 +82,49 @@ def station_monthly_summary(
             }
         )
     return pd.DataFrame(rows)
+
+
+def rainfall_comparison_days(
+    df: pd.DataFrame, stations: list[str], start_date: date, end_date: date
+) -> pd.DataFrame:
+    """Return selected station/day pairs, retaining absent observations as missing values."""
+    if end_date < start_date:
+        raise ValueError("The end date must be on or after the start date.")
+    selected = df.loc[
+        df["station"].isin(stations) & df["date"].between(pd.Timestamp(start_date), pd.Timestamp(end_date)),
+        ["station", "date", "rainfall_mm"],
+    ]
+    grid = pd.MultiIndex.from_product(
+        [sorted(set(stations)), pd.date_range(start_date, end_date, freq="D")],
+        names=["station", "date"],
+    )
+    return selected.set_index(["station", "date"]).reindex(grid).reset_index()
+
+
+def rainfall_station_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Compare observed rainfall and coverage on a complete station/day grid."""
+    grouped = df.groupby("station")["rainfall_mm"]
+    summary = grouped.agg(
+        total=lambda values: values.sum(min_count=1),
+        observed="count",
+        expected="size",
+        rain_days=lambda values: values.gt(0).sum() if values.notna().any() else float("nan"),
+        wettest="max",
+    )
+    summary["coverage"] = summary["observed"] / summary["expected"] * 100
+    return (
+        summary.rename(
+            columns={
+                "total": "Observed rainfall (mm)",
+                "observed": "Observed days",
+                "expected": "Days in selection",
+                "rain_days": "Rain days (>0 mm)",
+                "wettest": "Wettest day (mm)",
+                "coverage": "Coverage (%)",
+            }
+        )
+        .rename_axis("Station")
+        .reset_index()
+        .sort_values(["Observed rainfall (mm)", "Station"], ascending=[False, True], na_position="last")
+        .reset_index(drop=True)
+    )

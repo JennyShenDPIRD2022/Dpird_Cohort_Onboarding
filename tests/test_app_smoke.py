@@ -1,4 +1,4 @@
-"""Smoke tests for both Streamlit entry points."""
+"""Smoke tests for the Streamlit entry points."""
 
 from pathlib import Path
 
@@ -12,7 +12,10 @@ DATA_AVAILABLE = CONFIG.paths.stations.exists() and CONFIG.paths.daily_weather.e
 
 
 @pytest.mark.skipif(not DATA_AVAILABLE, reason="Generate data before running app smoke tests")
-@pytest.mark.parametrize("entry_point", [ROOT / "Overview.py", ROOT / "pages/1_Station_detail.py"])
+@pytest.mark.parametrize(
+    "entry_point",
+    [ROOT / "Overview.py", ROOT / "pages/1_Station_detail.py", ROOT / "pages/2_Rainfall_explorer.py"],
+)
 def test_streamlit_page_starts_without_exceptions(entry_point: Path) -> None:
     app = AppTest.from_file(str(entry_point)).run(timeout=30)
 

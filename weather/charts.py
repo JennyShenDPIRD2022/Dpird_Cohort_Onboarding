@@ -156,3 +156,97 @@ def gdd_chart(df: pd.DataFrame) -> go.Figure:
     )
     figure.update_yaxes(title="Growing degree days (°C days)")
     return _style(figure)
+
+
+def rainfall_station_totals_chart(summary: pd.DataFrame) -> go.Figure:
+    """Build ranked bars from the ordered station summary, keeping unknown totals distinct."""
+    figure = go.Figure(go.Bar(
+        x=summary["Observed rainfall (mm)"],
+        y=summary["Station"],
+        orientation="h",
+        marker_color=COLORS["rain"],
+        customdata=summary[["Observed days", "Days in selection", "Coverage (%)"]],
+        hovertemplate=(
+            "%{y}<br>Observed rainfall: %{x:.1f} mm<br>"
+            "Observed days: %{customdata[0]} / %{customdata[1]}<br>"
+            "Coverage: %{customdata[2]:.1f}%<extra></extra>"
+        ),
+    ))
+    for _, row in summary.iterrows():
+        total = row["Observed rainfall (mm)"]
+        if pd.isna(total) or total == 0:
+            figure.add_annotation(
+                x=0,
+                y=row["Station"],
+                text="No observations" if pd.isna(total) else "0.0 mm",
+                showarrow=False,
+                xanchor="left",
+                xshift=6,
+            )
+    figure.update_xaxes(title="Observed rainfall (mm)", rangemode="tozero")
+    figure.update_yaxes(
+        title="Station",
+        type="category",
+        categoryorder="array",
+        categoryarray=summary["Station"].tolist(),
+        autorange="reversed",
+        automargin=True,
+    )
+    _style(figure, height=max(320, 32 * len(summary) + 100))
+    figure.update_layout(showlegend=False, hovermode="closest")
+    return figure
+
+
+def rainfall_comparison_chart(df: pd.DataFrame, *, cumulative: bool = False) -> go.Figure:
+    """Compare period totals or cumulative observed rainfall without connecting missing periods."""
+    figure = go.Figure()
+    value = "cumulative_rainfall_mm" if cumulative else "rainfall_mm"
+    label = "Cumulative observed rainfall (mm)" if cumulative else "Observed rainfall (mm)"
+    for station, station_data in df.groupby("station", sort=True):
+        figure.add_scatter(
+            x=station_data["period"],
+            y=station_data[value],
+            name=station,
+            mode="lines+markers",
+            connectgaps=False,
+            customdata=station_data[["observed_days", "expected_days"]],
+            hovertemplate=(
+                f"%{{x|%d/%m/%Y}}<br>{label}: %{{y:.1f}}<br>"
+                "Observed days in period: %{customdata[0]} / %{customdata[1]}<extra>%{fullData.name}</extra>"
+            ),
+        )
+    figure.update_yaxes(title=label, rangemode="tozero")
+    figure.update_xaxes(title="Period start", type="date")
+    figure.update_layout(colorway=[
+        COLORS["rain"], COLORS["accent"], COLORS["gdd"], COLORS["heat_event"],
+        COLORS["max_temp"], COLORS["min_temp"], "#F778BA", "#FFA657",
+        "#A5D6FF", "#7EE787", "#D2A8FF", "#FFDCD7",
+    ])
+    return _style(figure, height=460)
+
+
+def rainfall_heatmap_chart(df: pd.DataFrame) -> go.Figure:
+    """Show monthly station totals with blank cells for unobserved months."""
+    totals = df.pivot(index="station", columns="period", values="rainfall_mm").sort_index()
+    observed = df.pivot(index="station", columns="period", values="observed_days").reindex_like(totals)
+    expected = df.pivot(index="station", columns="period", values="expected_days").reindex_like(totals)
+    coverage = observed.astype(str) + " / " + expected.astype(str)
+    figure = go.Figure(go.Heatmap(
+        x=totals.columns,
+        y=totals.index,
+        z=totals.to_numpy(),
+        customdata=coverage.to_numpy(),
+        colorscale=[[0, "#162A40"], [1, COLORS["rain"]]],
+        zmin=0,
+        colorbar={"title": "Rainfall (mm)"},
+        hoverongaps=False,
+        hovertemplate=(
+            "%{y}<br>%{x|%b %Y}<br>Observed rainfall: %{z:.1f} mm<br>"
+            "Observed days: %{customdata}<extra></extra>"
+        ),
+    ))
+    figure.update_xaxes(title="Month", tickformat="%b %Y", type="date")
+    figure.update_yaxes(title="Station", autorange="reversed")
+    _style(figure, height=max(360, 30 * len(totals) + 120))
+    figure.update_layout(hovermode="closest")
+    return figure

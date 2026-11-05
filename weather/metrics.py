@@ -1,6 +1,7 @@
 """Weather metrics used by the app and tests."""
 
 from collections import defaultdict
+from typing import Literal
 
 import pandas as pd
 
@@ -45,3 +46,20 @@ def monthly_rainfall(df: pd.DataFrame, group_by: str) -> pd.DataFrame:
         .sum(min_count=1)
         .sort_values(["month", group_by])
     )
+
+
+def rainfall_period_totals(
+    df: pd.DataFrame, frequency: Literal["Daily", "Weekly", "Monthly"]
+) -> pd.DataFrame:
+    """Summarize a complete station/day grid; weeks start Monday, missing totals remain NaN."""
+    periods = {"Daily": "D", "Weekly": "W-SUN", "Monthly": "M"}
+    dated = df.assign(period=df["date"].dt.to_period(periods[frequency]).dt.to_timestamp())
+    grouped = dated.groupby(["station", "period"])["rainfall_mm"]
+    result = grouped.agg(
+        rainfall_mm=lambda values: values.sum(min_count=1),
+        observed_days="count",
+        expected_days="size",
+    ).reset_index()
+    result = result.sort_values(["station", "period"]).reset_index(drop=True)
+    result["cumulative_rainfall_mm"] = result.groupby("station")["rainfall_mm"].cumsum()
+    return result
