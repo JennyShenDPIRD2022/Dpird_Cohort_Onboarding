@@ -1,4 +1,7 @@
-data/
+data/*
+!data/stations.csv
+!data/daily_weather_2024.csv
+!data/rainfall_2024.csv
 output/
 .venv/
 __pycache__/

@@ -1,0 +1,13 @@
+station_id,station,region,lat,lon,elevation_m
+WA001,Kununurra,Kimberley,-15.778,128.71,47
+WA002,Port Hedland,Pilbara,-20.31,118.626,13
+WA003,Carnarvon,Gascoyne,-24.88,113.672,8
+WA004,Geraldton,Mid West,-28.777,114.614,34
+WA005,Moora,Wheatbelt,-30.641,116.01,203
+WA006,Merredin,Wheatbelt,-31.482,118.279,315
+WA007,Northam,Wheatbelt,-31.654,116.67,170
+WA008,Katanning,Great Southern,-33.691,117.556,310
+WA009,Albany,Great Southern,-35.027,117.884,69
+WA010,Manjimup,South West,-34.241,116.146,287
+WA011,Busselton,South West,-33.65,115.345,4
+WA012,Esperance,Goldfields-Esperance,-33.861,121.891,25

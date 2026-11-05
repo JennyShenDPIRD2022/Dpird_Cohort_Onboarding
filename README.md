@@ -1,71 +1,69 @@
 # WA Weather Tracker
 
-WA Weather Tracker is a small Streamlit app for exploring rainfall, maximum and minimum
-temperature, frost, heat and growing conditions across 12 Western Australian weather
-stations during 2024.
+Explore rainfall, temperature, frost, heat and growing conditions across 12 Western
+Australian weather stations in 2024 with this Streamlit app.
 
 > **All observations in this project are synthetic and intended for demonstration only.**
 > They must not be used for forecasting, safety decisions or historical analysis.
 
 ## Features
 
-- Region and date filters with headline weather metrics
-- Monthly rainfall and daily temperature charts
-- A token-free station map sized by rainfall
-- Station-level weather, growing degree days and monthly summaries
-- Deliberate data-quality issues to demonstrate cleaning workflows
-
-Configuration in `config.yaml` controls every data path and weather threshold.
+- Filter by region and date to view headline metrics, rainfall and temperature charts.
+- Explore a token-free station map sized by rainfall.
+- Review station weather, growing degree days and monthly summaries.
+- Practise data cleaning with deliberate data-quality issues.
 
 ## Quick start
 
-### Windows PowerShell
+Requires Python 3.12 or newer. Create and activate a virtual environment:
+
+**Windows PowerShell**
 
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements-dev.txt
-python scripts/generate_data.py
-streamlit run Overview.py
 ```
 
-Run the tests and linter:
-
-```powershell
-ruff check .
-pytest
-```
-
-### macOS and Linux
+**macOS / Linux**
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
+```
+
+Then install dependencies and start the app:
+
+```sh
 python -m pip install -r requirements-dev.txt
-python scripts/generate_data.py
 streamlit run Overview.py
 ```
 
-Run the tests and linter:
+Open `http://localhost:8501`. Demo CSVs are included in [`data/`](data/), copied from
+the [original template](https://github.com/danielhardej/ghcp-demo-weather-app/tree/b9015aa9c0714179f7a8f87d85352ed3e7488540/data).
+Set data paths and weather thresholds in [`config.yaml`](config.yaml).
 
-```bash
+## Development
+
+To regenerate the synthetic data, run `python scripts/generate_data.py`.
+This overwrites the included CSVs; review any changes before committing.
+
+Run the linter and tests:
+
+```sh
 ruff check .
 pytest
 ```
-
-The app opens at `http://localhost:8501`. Generated CSV files are written to `data/`
-and are intentionally excluded from Git.
 
 ## Project structure
 
 ```text
 .
-├── Overview.py                    # Overview page
+├── Overview.py                   # Overview page
 ├── pages/1_Station_detail.py      # Station analysis page
-├── weather/                       # Data, metrics, charts and app logic
+├── weather/                      # Data, metrics, charts and app logic
 ├── scripts/generate_data.py       # Deterministic synthetic data generator
 ├── legacy/station_rankings.R      # Base-R monthly station ranking
-├── tests/                         # Metrics, charts and app smoke tests
-├── config.yaml                    # Paths and weather thresholds
+├── tests/                        # Metrics, charts and app smoke tests
+├── config.yaml                   # Paths and weather thresholds
 └── .github/workflows/ci.yml       # Python 3.12 CI
 ```
