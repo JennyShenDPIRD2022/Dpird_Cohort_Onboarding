@@ -67,4 +67,10 @@ st.plotly_chart(temperature_trend_chart(daily_temperatures(filtered)), use_conta
 st.subheader("Weather stations")
 st.plotly_chart(station_map_chart(map_totals(filtered, stations)), use_container_width=True)
 
+
+
+# Display footer with all of the different options and footr menuat the end of the page
+
+
+
 footer()
