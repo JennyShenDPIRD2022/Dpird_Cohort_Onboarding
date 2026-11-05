@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Python quality checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Generate synthetic data
+        run: python scripts/generate_data.py --interval-minutes 60
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        run: pytest
+
+  demo-pr-check:
+    name: Demo pull request check
+    if: always() && github.event_name == 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report quality result
+        env:
+          QUALITY_RESULT: ${{ needs.test.result }}
+        run: |
+          echo "## WA Weather Tracker PR check" >> "$GITHUB_STEP_SUMMARY"
+          echo "Python quality checks: **$QUALITY_RESULT**" >> "$GITHUB_STEP_SUMMARY"
+          test "$QUALITY_RESULT" = "success"

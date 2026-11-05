@@ -1,0 +1,11 @@
+paths:
+  stations: data/stations.csv
+  daily_weather: data/daily_weather_2024.csv
+  rainfall_readings: data/rainfall_2024.csv
+  monthly_rainfall: output/monthly_rainfall_2024.csv
+  station_rankings: output/station_rankings_2024.csv
+
+thresholds:
+  frost_c: 2.0
+  heat_c: 35.0
+  gdd_base_c: 0.0
